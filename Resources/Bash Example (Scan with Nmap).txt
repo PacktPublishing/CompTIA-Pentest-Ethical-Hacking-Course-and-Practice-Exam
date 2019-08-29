@@ -1,0 +1,54 @@
+#!/bin/bash
+#############################################################################
+#                                                                           #
+#  NAME:     scan-attackers                                                 #
+#  VERSION:  1.0.1                                                          #
+#  AUTHOR:   William Stone III <wrs@wrstone.com>                            #
+#  WRITTEN:  Thu Jun 11 14:42:22 UTC 2015                                   #
+#  MODIFIED: Wed Jun 24 01:27:02 UTC 2015     
+#  WEBSITE:  https://github.com/wrstone/scan-attackers                              #
+#                                                                           #
+#  PURPOSE:  This is a Bash script that launches an nmap "Slow              #
+#            comprehensive scan" against IP addresses identified as attack  #
+#            nodes by Fail2Ban (http://www.fail2ban.org).                   #
+#                                                                           #
+#            It reads a list of IP addresses from a text file containing    #
+#            one IP address on each line.                                   #
+#                                                                           #
+#            It will then save the scan output to a file for later review.  #
+#                                                                           #
+#  NOTES:    This script intended to be run inside a GNU screen             #
+#            (https://www.gnu.org/software/screen/) session so that it may  #
+#            run detached.                                                  #
+#                                                                           #
+#############################################################################
+
+# Get the current program name
+PROGRAM=`basename $0`
+
+# Check to see if the user specified a command-line option
+if [ "$1" != "" ]
+then
+        # The user called the script correctly, so we can do work
+        TARGETFILE=$1
+        REPORTDIR="/var/log/nmap"
+        for TARGET in $(cat $TARGETFILE)
+        do
+
+                echo "Scanning $TARGET ..."
+                /usr/bin/nmap -oN $REPORTDIR/$TARGET.nmap -sS -sU -T4 -A -v -PE -PP -PS80,443 -PA3389 -PU40125 -PY -g 53 --script "default or (discovery and safe)" $TARGET >> $REPORTDIR/$TARGET.nmap 2>$1
+
+        done
+else
+        # The user didn't specify any command line options, so let's
+        # give them instructions
+        echo
+        echo "Usage:  $PROGRAM [file]"
+        echo
+        echo "The program will read from a list of attack nodes and output a text report"
+        echo "for each node."
+        echo
+        echo "You must specify a file containing attack node IP addresses.  Each address"
+        echo "must be on its own line"
+        echo
+fi

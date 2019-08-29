@@ -1,0 +1,30 @@
+# coding: utf-8
+# Basic socket usage to grab a banner. 
+# @author Kent 'picat' Gruber
+
+require 'socket'
+
+# Target ports... a range of all of the possible ports lol.
+target_ports = 1..65535
+target_ips   = ['10.0.0.2', '10.0.0.3', '10.0.0.4']
+
+# Grab the banner of a given +ip+ address and +port+
+# to attempt to connect to.
+#
+# @param ip   [String]  Target IP address.
+# @param port [Integer] Target port.
+#
+# @return [String]
+def grab_banner(ip, port)
+  TCPSocket.new(ip, port).recv(1024)
+rescue
+  "Unable to establish a connection with #{ip}:#{port}"
+end
+
+# Iterate over each port, attempting to grab the banner
+# and printing the result to STDOUT.
+target_ips.each do |ip|
+  target_ports.each do |port|
+    puts grab_banner(ip, port)
+  end
+end
